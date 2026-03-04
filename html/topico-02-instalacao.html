@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tópico 02 — Instalação e Estrutura | Express.js</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1a1a1a;
+      --border: #242424;
+      --border2: #2e2e2e;
+      --accent: #ffd60a;
+      --accent-dim: rgba(255, 214, 10, 0.07);
+      --green: #00ff9d;
+      --green-dim: rgba(0, 255, 157, 0.08);
+      --blue: #4d9eff;
+      --blue-dim: rgba(77, 158, 255, 0.08);
+      --orange: #ff9500;
+      --orange-dim: rgba(255, 149, 0, 0.08);
+      --red: #ff453a;
+      --red-dim: rgba(255, 69, 58, 0.08);
+      --text: #e8e8e8;
+      --muted: #555;
+      --muted2: #888;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.4;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      background: var(--surface);
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .sidebar-logo .back {
+      font-size: 10px;
+      color: var(--muted2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-logo .lesson-id {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .nav-group-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 8px 20px;
+      font-size: 11px;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: var(--text);
+      background: var(--accent-dim);
+      border-left-color: var(--accent);
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      max-width: 820px;
+      padding: 56px 48px;
+      overflow-x: hidden;
+    }
+
+    .section {
+      margin-bottom: 72px;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .section:nth-child(1) {
+      animation-delay: .1s
+    }
+
+    .section:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .section:nth-child(3) {
+      animation-delay: .3s
+    }
+
+    .section:nth-child(4) {
+      animation-delay: .35s
+    }
+
+    .section:nth-child(5) {
+      animation-delay: .4s
+    }
+
+    .section:nth-child(6) {
+      animation-delay: .45s
+    }
+
+    .section:nth-child(7) {
+      animation-delay: .5s
+    }
+
+    .section:nth-child(8) {
+      animation-delay: .55s
+    }
+
+    .section:nth-child(9) {
+      animation-delay: .6s
+    }
+
+    .lesson-header {
+      margin-bottom: 56px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeIn 0.6s ease 0.05s forwards;
+    }
+
+    .breadcrumb {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .breadcrumb span {
+      color: var(--accent);
+    }
+
+    h1.lesson-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    h1.lesson-title em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .lesson-intro {
+      font-size: 13px;
+      color: var(--muted2);
+      max-width: 560px;
+      line-height: 1.9;
+    }
+
+    .lesson-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted2);
+      border: 1px solid var(--border2);
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+
+    h2.section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2.section-title .num {
+      font-size: 11px;
+      color: var(--muted2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    h3.sub-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      margin: 28px 0 12px;
+      color: var(--text);
+    }
+
+    p {
+      color: var(--muted2);
+      margin-bottom: 16px;
+      line-height: 1.85;
+      font-size: 13px;
+    }
+
+    p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+
+    .code-lang {
+      font-size: 9px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+    }
+
+    /* TERMINAL STYLE */
+    .terminal {
+      background: #080808;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #111;
+      border-bottom: 1px solid #1e1e1e;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-r {
+      background: #ff453a;
+    }
+
+    .dot-y {
+      background: #ffd60a;
+    }
+
+    .dot-g {
+      background: #32d74b;
+    }
+
+    .terminal-title {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-left: 6px;
+    }
+
+    .terminal pre {
+      padding: 20px;
+      color: #ccc;
+    }
+
+    .t-prompt {
+      color: var(--accent);
+    }
+
+    .t-cmd {
+      color: #fff;
+    }
+
+    .t-out {
+      color: #666;
+    }
+
+    .t-green {
+      color: #32d74b;
+    }
+
+    .t-blue {
+      color: var(--blue);
+    }
+
+    .t-dim {
+      color: #444;
+    }
+
+    /* SYNTAX */
+    .kw {
+      color: #ff79c6;
+    }
+
+    .fn {
+      color: #50fa7b;
+    }
+
+    .str {
+      color: #f1fa8c;
+    }
+
+    .num {
+      color: #bd93f9;
+    }
+
+    .com {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    .obj {
+      color: #8be9fd;
+    }
+
+    .prop {
+      color: #ffb86c;
+    }
+
+    .jskey {
+      color: #ff9500;
+    }
+
+    /* BOXES */
+    .box {
+      border-radius: 4px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      border: 1px solid;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .box-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .box.tip {
+      background: var(--green-dim);
+      border-color: rgba(0, 255, 157, 0.2);
+      color: #aaa;
+    }
+
+    .box.tip .box-label {
+      color: var(--green);
+    }
+
+    .box.warn {
+      background: var(--orange-dim);
+      border-color: rgba(255, 149, 0, 0.2);
+      color: #aaa;
+    }
+
+    .box.warn .box-label {
+      color: var(--orange);
+    }
+
+    .box.info {
+      background: var(--blue-dim);
+      border-color: rgba(77, 158, 255, 0.2);
+      color: #aaa;
+    }
+
+    .box.info .box-label {
+      color: var(--blue);
+    }
+
+    .box.danger {
+      background: var(--red-dim);
+      border-color: rgba(255, 69, 58, 0.2);
+      color: #aaa;
+    }
+
+    .box.danger .box-label {
+      color: var(--red);
+    }
+
+    .box.yellow {
+      background: var(--accent-dim);
+      border-color: rgba(255, 214, 10, 0.2);
+      color: #aaa;
+    }
+
+    .box.yellow .box-label {
+      color: var(--accent);
+    }
+
+    /* FILE TREE */
+    .file-tree {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      margin: 20px 0;
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tree-indent {
+      color: transparent;
+      user-select: none;
+    }
+
+    .tree-line {
+      color: #333;
+    }
+
+    .fi-folder {
+      color: var(--accent);
+    }
+
+    .fi-js {
+      color: #f7df1e;
+    }
+
+    .fi-json {
+      color: var(--green);
+    }
+
+    .fi-env {
+      color: var(--orange);
+    }
+
+    .fi-md {
+      color: var(--blue);
+    }
+
+    .fi-git {
+      color: #f05032;
+    }
+
+    .fi-label {
+      color: var(--text);
+    }
+
+    .fi-comment {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* PACKAGE.JSON BREAKDOWN */
+    .pkg-field {
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 3px;
+    }
+
+    .pkg-key {
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .pkg-desc {
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.7;
+    }
+
+    /* STEP FLOW */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 20px 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 20px;
+    }
+
+    .step-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-line {
+      width: 1px;
+      background: var(--border);
+      flex: 1;
+      margin: 4px 0;
+      min-height: 20px;
+    }
+
+    .step:last-child .step-line {
+      display: none;
+    }
+
+    .step-content {
+      padding-bottom: 28px;
+      flex: 1;
+    }
+
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.7;
+    }
+
+    /* COMPARISON */
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .compare-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 18px;
+      border-radius: 4px;
+    }
+
+    .compare-card h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .compare-card.good {
+      border-top: 2px solid var(--green);
+    }
+
+    .compare-card.good h4 {
+      color: var(--green);
+    }
+
+    .compare-card.bad {
+      border-top: 2px solid var(--red);
+    }
+
+    .compare-card.bad h4 {
+      color: var(--red);
+    }
+
+    .compare-card ul {
+      list-style: none;
+      font-size: 11px;
+      color: var(--muted2);
+      line-height: 2;
+    }
+
+    .compare-card ul li::before {
+      content: '→ ';
+      color: var(--muted);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead tr {
+      border-bottom: 1px solid var(--border2);
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted2);
+      font-weight: 500;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted2);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--surface2);
+    }
+
+    .td-code {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      font-size: 11px;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: var(--accent);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        padding: 32px 20px;
+      }
+
+      h1.lesson-title {
+        font-size: 28px;
+      }
+
+      .compare-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <a href="expressjs-plano.html" class="back" style="text-decoration: none;">← Express.js</a>
+        <div class="lesson-id">Tópico 02</div>
+      </div>
+      <div class="nav-group-label">Nesta aula</div>
+      <a class="nav-item active" href="#prereqs">Pré-requisitos</a>
+      <a class="nav-item" href="#init">npm init</a>
+      <a class="nav-item" href="#packagejson">package.json</a>
+      <a class="nav-item" href="#install">Instalando Express</a>
+      <a class="nav-item" href="#primeiro">Primeiro servidor</a>
+      <a class="nav-item" href="#estrutura">Estrutura de pastas</a>
+      <a class="nav-item" href="#scripts">Scripts npm</a>
+      <a class="nav-item" href="#nodemon">Nodemon</a>
+      <a class="nav-item" href="#gitignore">.gitignore e .env</a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <div class="lesson-header">
+        <div class="breadcrumb">Fundamentos → <span>Tópico 02</span></div>
+        <h1 class="lesson-title">Instalação &<br><em>Estrutura Inicial</em></h1>
+        <p class="lesson-intro">
+          Do zero ao primeiro servidor funcionando. Aqui você aprende a criar um projeto Node.js do zero, entender cada
+          campo do <strong>package.json</strong>, instalar o Express e montar uma estrutura de pastas que vai escalar
+          junto com o projeto.
+        </p>
+        <div class="lesson-meta">
+          <span class="meta-chip">Nível 01 — Básico</span>
+          <span class="meta-chip">Setup</span>
+          <span class="meta-chip">Configuração</span>
+        </div>
+      </div>
+
+      <!-- 01 PRÉ-REQUISITOS -->
+      <section class="section" id="prereqs">
+        <h2 class="section-title"><span class="num">01</span>Pré-requisitos</h2>
+
+        <p>Para usar o Express você precisa ter o <strong>Node.js</strong> instalado. O Express é um framework que roda
+          em cima do Node — ele não funciona no browser.</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">node --version</span>
+<span class="t-green">v20.11.0</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">npm --version</span>
+<span class="t-green">10.2.4</span></pre>
+        </div>
+
+        <p>Se o comando falhar, baixe o Node.js em <strong>nodejs.org</strong> — o npm vem junto automaticamente. Use
+          sempre uma versão LTS (Long Term Support) em projetos profissionais.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ferramenta</th>
+                <th>O que é</th>
+                <th>Versão recomendada</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-code">Node.js</td>
+                <td>Runtime JavaScript no servidor</td>
+                <td>20.x LTS ou superior</td>
+              </tr>
+              <tr>
+                <td class="td-code">npm</td>
+                <td>Gerenciador de pacotes (vem com Node)</td>
+                <td>Qualquer recente</td>
+              </tr>
+              <tr>
+                <td class="td-code">VS Code</td>
+                <td>Editor recomendado</td>
+                <td>Qualquer versão</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box info">
+          <span class="box-label">// npm vs yarn vs pnpm</span>
+          Todos são gerenciadores de pacotes e fazem a mesma coisa. <strong>npm</strong> é o padrão e já vem com o Node
+          — use ele. Se você já usa yarn ou pnpm, pode substituir os comandos tranquilamente (ex:
+          <code>npm install</code> → <code>yarn add</code>).
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 02 NPM INIT -->
+      <section class="section" id="init">
+        <h2 class="section-title"><span class="num">02</span>Criando o projeto com npm init</h2>
+
+        <p>Todo projeto Node.js começa com o comando <code>npm init</code>. Ele cria o arquivo
+          <strong>package.json</strong>, que é o coração do projeto — registra nome, versão, dependências e scripts.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-left">
+              <div class="step-num">1</div>
+              <div class="step-line"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title">Crie e entre na pasta do projeto</div>
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="dot dot-r"></div>
+                  <div class="dot dot-y"></div>
+                  <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+                </div>
+                <pre><span class="t-prompt">$</span> <span class="t-cmd">mkdir minha-api</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cd minha-api</span></pre>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-left">
+              <div class="step-num">2</div>
+              <div class="step-line"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title">Inicialize o projeto</div>
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="dot dot-r"></div>
+                  <div class="dot dot-y"></div>
+                  <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+                </div>
+                <pre><span class="t-prompt">$</span> <span class="t-cmd">npm init -y</span>
+<span class="t-green">Wrote to /minha-api/package.json:</span>
+<span class="t-out">{
+  "name": "minha-api",
+  "version": "1.0.0",
+  ...
+}</span></pre>
+              </div>
+              <div class="step-desc">A flag <code>-y</code> responde "sim" para todas as perguntas e cria o arquivo com
+                valores padrão. Sem ela, o npm faz perguntas interativas.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-left">
+              <div class="step-num">3</div>
+              <div class="step-line"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title">Abra no editor</div>
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="dot dot-r"></div>
+                  <div class="dot dot-y"></div>
+                  <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+                </div>
+                <pre><span class="t-prompt">$</span> <span class="t-cmd">code .</span></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 03 PACKAGE.JSON -->
+      <section class="section" id="packagejson">
+        <h2 class="section-title"><span class="num">03</span>Entendendo o package.json</h2>
+
+        <p>O <strong>package.json</strong> é o manifesto do projeto. Ele descreve tudo sobre o seu projeto e é o arquivo
+          mais importante depois do seu código. Veja o que cada campo significa:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">package.json completo</span><span
+              class="code-lang">JSON</span></div>
+          <pre>{
+  <span class="str">"name"</span>: <span class="str">"minha-api"</span>,
+  <span class="str">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="str">"description"</span>: <span class="str">"API REST com Express"</span>,
+  <span class="str">"main"</span>: <span class="str">"src/server.js"</span>,
+  <span class="str">"scripts"</span>: {
+    <span class="str">"start"</span>: <span class="str">"node src/server.js"</span>,
+    <span class="str">"dev"</span>: <span class="str">"nodemon src/server.js"</span>,
+    <span class="str">"test"</span>: <span class="str">"jest"</span>
+  },
+  <span class="str">"dependencies"</span>: {
+    <span class="str">"express"</span>: <span class="str">"^4.18.2"</span>
+  },
+  <span class="str">"devDependencies"</span>: {
+    <span class="str">"nodemon"</span>: <span class="str">"^3.0.1"</span>
+  },
+  <span class="str">"engines"</span>: {
+    <span class="str">"node"</span>: <span class="str">">=18.0.0"</span>
+  },
+  <span class="str">"author"</span>: <span class="str">"Seu Nome"</span>,
+  <span class="str">"license"</span>: <span class="str">"MIT"</span>
+}</pre>
+        </div>
+
+        <div class="pkg-field">
+          <div class="pkg-key">"name"</div>
+          <div class="pkg-desc">Nome do projeto. Deve ser único se publicar no npm. Use letras minúsculas e hífens, sem
+            espaços.</div>
+        </div>
+        <div class="pkg-field">
+          <div class="pkg-key">"version"</div>
+          <div class="pkg-desc">Segue o padrão <strong>Semantic Versioning</strong>: <code>MAJOR.MINOR.PATCH</code>. Ex:
+            2.1.3 significa versão maior 2, feature menor 1, correção de bug 3.</div>
+        </div>
+        <div class="pkg-field">
+          <div class="pkg-key">"main"</div>
+          <div class="pkg-desc">Arquivo de entrada do projeto — o ponto de partida quando alguém importa seu pacote.
+            Para uma API, aponte para seu arquivo principal.</div>
+        </div>
+        <div class="pkg-field">
+          <div class="pkg-key">"scripts"</div>
+          <div class="pkg-desc">Atalhos de terminal executados com <code>npm run &lt;nome&gt;</code>. O script
+            <code>start</code> é especial: roda com <code>npm start</code> sem o "run".</div>
+        </div>
+        <div class="pkg-field">
+          <div class="pkg-key">"dependencies"</div>
+          <div class="pkg-desc">Pacotes necessários em <strong>produção</strong>. São instalados com
+            <code>npm install &lt;pacote&gt;</code>. Vão para o servidor quando você fizer deploy.</div>
+        </div>
+        <div class="pkg-field">
+          <div class="pkg-key">"devDependencies"</div>
+          <div class="pkg-desc">Pacotes usados <strong>somente em desenvolvimento</strong> — testes, linters,
+            ferramentas de build. Instalados com <code>npm install -D &lt;pacote&gt;</code>. Não vão para produção.
+          </div>
+        </div>
+
+        <div class="box warn">
+          <span class="box-label">// O que é o ^ no número de versão?</span>
+          <code>"express": "^4.18.2"</code> — o <strong>^</strong> (caret) significa "aceite atualizações de versão
+          minor e patch, mas não de major". Então <code>^4.18.2</code> aceita 4.18.3, 4.19.0, mas não 5.0.0. Isso
+          protege de breaking changes acidentais.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 04 INSTALANDO EXPRESS -->
+      <section class="section" id="install">
+        <h2 class="section-title"><span class="num">04</span>Instalando o Express</h2>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">npm install express</span>
+
+<span class="t-out">added 64 packages in 2s</span>
+<span class="t-green">found 0 vulnerabilities</span></pre>
+        </div>
+
+        <p>Após rodar o comando, três coisas acontecem no seu projeto:</p>
+
+        <div class="file-tree">
+          <div class="tree-item"><span class="fi-folder">📁</span> <span class="fi-label">minha-api/</span></div>
+          <div class="tree-item"><span class="tree-line">├──</span> <span class="fi-folder">📁</span> <span
+              class="fi-label">node_modules/</span> <span class="fi-comment">← criada agora (não toque aqui)</span>
+          </div>
+          <div class="tree-item"><span class="tree-line">├──</span> <span class="fi-json">📄</span> <span
+              class="fi-label">package.json</span> <span class="fi-comment">← atualizado com "express" em
+              dependencies</span></div>
+          <div class="tree-item"><span class="tree-line">└──</span> <span class="fi-json">📄</span> <span
+              class="fi-label">package-lock.json</span> <span class="fi-comment">← criado agora (versões exatas
+              travadas)</span></div>
+        </div>
+
+        <h3 class="sub-title">O que é a pasta node_modules?</h3>
+        <p>É onde o npm salva fisicamente todos os pacotes instalados. A pasta do Express fica em
+          <code>node_modules/express/</code>. Ela pode ter centenas de subpastas porque cada pacote tem suas próprias
+          dependências.</p>
+
+        <div class="box danger">
+          <span class="box-label">// NUNCA suba node_modules para o Git</span>
+          A pasta node_modules pode ter centenas de MB. Ela é gerada automaticamente com <code>npm install</code> a
+          partir do package.json — não precisa ser versionada. Adicione sempre ao <strong>.gitignore</strong>.
+        </div>
+
+        <h3 class="sub-title">O que é o package-lock.json?</h3>
+        <p>Enquanto o <code>package.json</code> define intervalos de versão (<code>^4.18.2</code>), o
+          <code>package-lock.json</code> <strong>trava as versões exatas</strong> de todos os pacotes instalados. Isso
+          garante que todos no time, e o servidor em produção, instalem exatamente os mesmos pacotes.</p>
+
+        <div class="box tip">
+          <span class="box-label">// Commits e package-lock.json</span>
+          Sempre commite o <code>package-lock.json</code> no Git. Ele é o que garante reprodutibilidade — qualquer
+          pessoa que clonar o repositório e rodar <code>npm install</code> terá o ambiente idêntico ao seu.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 05 PRIMEIRO SERVIDOR -->
+      <section class="section" id="primeiro">
+        <h2 class="section-title"><span class="num">05</span>O primeiro servidor Express</h2>
+
+        <p>Com o Express instalado, crie o arquivo principal e suba o servidor:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">server.js — o mínimo funcional</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="com">// 1. Importa o Express</span>
+<span class="kw">const</span> <span class="obj">express</span> = <span class="fn">require</span>(<span class="str">'express'</span>)
+
+<span class="com">// 2. Cria uma instância da aplicação</span>
+<span class="kw">const</span> <span class="obj">app</span> = <span class="fn">express</span>()
+
+<span class="com">// 3. Define a porta</span>
+<span class="kw">const</span> <span class="obj">PORT</span> = <span class="num">3000</span>
+
+<span class="com">// 4. Cria uma rota</span>
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">res</span>.<span class="fn">send</span>(<span class="str">'Servidor Express funcionando! 🚀'</span>)
+})
+
+<span class="com">// 5. Inicia o servidor</span>
+<span class="obj">app</span>.<span class="fn">listen</span>(<span class="obj">PORT</span>, () => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="str">`Servidor rodando em http://localhost:${PORT}`</span>)
+})</pre>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">node server.js</span>
+<span class="t-green">Servidor rodando em http://localhost:3000</span></pre>
+        </div>
+
+        <p>Abra <strong>http://localhost:3000</strong> no browser ou teste com curl:</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">curl http://localhost:3000</span>
+<span class="t-green">Servidor Express funcionando! 🚀</span></pre>
+        </div>
+
+        <h3 class="sub-title">Linha por linha — o que cada parte faz</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Linha</th>
+                <th>O que faz</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-code">require('express')</td>
+                <td>Carrega o módulo Express instalado na node_modules</td>
+              </tr>
+              <tr>
+                <td class="td-code">express()</td>
+                <td>Cria uma instância da aplicação — o objeto app é tudo</td>
+              </tr>
+              <tr>
+                <td class="td-code">app.get('/', ...)</td>
+                <td>Registra um handler para GET na rota raiz /</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.send()</td>
+                <td>Envia a resposta e encerra a conexão</td>
+              </tr>
+              <tr>
+                <td class="td-code">app.listen(PORT, cb)</td>
+                <td>Inicia o servidor HTTP na porta indicada</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 06 ESTRUTURA DE PASTAS -->
+      <section class="section" id="estrutura">
+        <h2 class="section-title"><span class="num">06</span>Estrutura de pastas recomendada</h2>
+
+        <p>O Express não impõe nenhuma estrutura — você pode colocar tudo em um arquivo só. Mas para projetos que
+          crescem, uma boa organização desde o começo evita dor de cabeça.</p>
+
+        <h3 class="sub-title">Estrutura simples (projetos pequenos)</h3>
+
+        <div class="file-tree">
+          <div class="tree-item"><span class="fi-folder">📁</span> <span class="fi-label">minha-api/</span></div>
+          <div class="tree-item"><span style="color:#333">├──</span> <span class="fi-folder">📁</span> <span
+              class="fi-label">src/</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;</span><span style="color:#333">├──</span> <span
+              class="fi-js">📄</span> <span class="fi-label">server.js</span> <span class="fi-comment">← ponto de
+              entrada, inicia o app</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;</span><span style="color:#333">├──</span> <span
+              class="fi-js">📄</span> <span class="fi-label">app.js</span> <span class="fi-comment">← instância do
+              Express + middlewares</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;</span><span style="color:#333">├──</span> <span
+              class="fi-folder">📁</span> <span class="fi-label">routes/</span> <span class="fi-comment">← arquivos de
+              rota por recurso</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;</span><span
+              style="color:#333">│&nbsp;&nbsp;</span><span style="color:#333">└──</span> <span class="fi-js">📄</span>
+            <span class="fi-label">usuarios.js</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;</span><span style="color:#333">└──</span> <span
+              class="fi-folder">📁</span> <span class="fi-label">controllers/</span> <span class="fi-comment">← lógica
+              de negócio</span></div>
+          <div class="tree-item"><span style="color:#333">│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+              style="color:#333">└──</span> <span class="fi-js">📄</span> <span
+              class="fi-label">usuariosController.js</span></div>
+          <div class="tree-item"><span style="color:#333">├──</span> <span class="fi-env">📄</span> <span
+              class="fi-label">.env</span> <span class="fi-comment">← variáveis de ambiente (nunca no Git)</span></div>
+          <div class="tree-item"><span style="color:#333">├──</span> <span class="fi-env">📄</span> <span
+              class="fi-label">.env.example</span> <span class="fi-comment">← template do .env (vai no Git)</span></div>
+          <div class="tree-item"><span style="color:#333">├──</span> <span class="fi-git">📄</span> <span
+              class="fi-label">.gitignore</span></div>
+          <div class="tree-item"><span style="color:#333">├──</span> <span class="fi-json">📄</span> <span
+              class="fi-label">package.json</span></div>
+          <div class="tree-item"><span style="color:#333">└──</span> <span class="fi-md">📄</span> <span
+              class="fi-label">README.md</span></div>
+        </div>
+
+        <h3 class="sub-title">Separando app.js de server.js</h3>
+        <p>Uma convenção muito comum e útil é separar a <strong>criação do app</strong> da <strong>inicialização do
+            servidor</strong>. Isso facilita muito os testes automatizados — você pode importar o app sem subir o
+          servidor.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">src/app.js — configuração da aplicação</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="kw">const</span> <span class="obj">express</span> = <span class="fn">require</span>(<span class="str">'express'</span>)
+<span class="kw">const</span> <span class="obj">app</span> = <span class="fn">express</span>()
+
+<span class="com">// Middlewares globais</span>
+<span class="obj">app</span>.<span class="fn">use</span>(<span class="obj">express</span>.<span class="fn">json</span>())
+<span class="obj">app</span>.<span class="fn">use</span>(<span class="obj">express</span>.<span class="fn">urlencoded</span>({ <span class="prop">extended</span>: <span class="kw">true</span> }))
+
+<span class="com">// Rotas</span>
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">res</span>.<span class="fn">json</span>({ <span class="prop">status</span>: <span class="str">'ok'</span>, <span class="prop">versao</span>: <span class="str">'1.0.0'</span> })
+})
+
+<span class="com">// Exporta o app (sem chamar .listen)</span>
+<span class="obj">module</span>.<span class="prop">exports</span> = <span class="obj">app</span></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">src/server.js — inicialização do servidor</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="kw">const</span> <span class="obj">app</span> = <span class="fn">require</span>(<span class="str">'./app'</span>)
+
+<span class="kw">const</span> <span class="obj">PORT</span> = <span class="obj">process</span>.<span class="prop">env</span>.<span class="prop">PORT</span> || <span class="num">3000</span>
+
+<span class="obj">app</span>.<span class="fn">listen</span>(<span class="obj">PORT</span>, () => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="str">`🚀 Servidor rodando em http://localhost:${PORT}`</span>)
+})</pre>
+        </div>
+
+        <div class="box tip">
+          <span class="box-label">// Por que separar?</span>
+          Nos testes com Jest + Supertest (Tópico 19), você importa apenas o <code>app.js</code> sem precisar subir o
+          servidor real. Isso torna os testes mais rápidos, isolados e sem conflito de porta.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 07 SCRIPTS NPM -->
+      <section class="section" id="scripts">
+        <h2 class="section-title"><span class="num">07</span>Scripts npm</h2>
+
+        <p>Os scripts no <code>package.json</code> são atalhos de terminal. Em vez de digitar
+          <code>node src/server.js</code> toda vez, você define uma vez e roda com <code>npm run dev</code>.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">Scripts no package.json</span><span
+              class="code-lang">JSON</span></div>
+          <pre>{
+  <span class="str">"scripts"</span>: {
+    <span class="str">"start"</span>: <span class="str">"node src/server.js"</span>,       <span class="com">// produção</span>
+    <span class="str">"dev"</span>:   <span class="str">"nodemon src/server.js"</span>,    <span class="com">// desenvolvimento</span>
+    <span class="str">"test"</span>:  <span class="str">"jest --coverage"</span>,           <span class="com">// testes</span>
+    <span class="str">"lint"</span>:  <span class="str">"eslint src/"</span>              <span class="com">// verificação de código</span>
+  }
+}</pre>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">npm start</span>         <span class="t-dim"># roda em produção</span>
+<span class="t-prompt">$</span> <span class="t-cmd">npm run dev</span>       <span class="t-dim"># roda em desenvolvimento (com nodemon)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">npm test</span>          <span class="t-dim"># roda os testes</span>
+<span class="t-prompt">$</span> <span class="t-cmd">npm run lint</span>      <span class="t-dim"># verifica qualidade do código</span></pre>
+        </div>
+
+        <div class="box info">
+          <span class="box-label">// start e test são especiais</span>
+          Os scripts <code>start</code> e <code>test</code> são reservados — você roda com <code>npm start</code> e
+          <code>npm test</code> (sem o "run"). Todos os outros precisam do <code>npm run</code> antes.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 08 NODEMON -->
+      <section class="section" id="nodemon">
+        <h2 class="section-title"><span class="num">08</span>Nodemon — reload automático</h2>
+
+        <p>Por padrão, o Node.js não reinicia o servidor quando você salva um arquivo. O <strong>nodemon</strong>
+          resolve isso: ele monitora os arquivos e reinicia automaticamente toda vez que detecta uma mudança.</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">npm install -D nodemon</span>
+<span class="t-out">added 34 packages in 1s</span></pre>
+        </div>
+
+        <p>A flag <code>-D</code> instala como <strong>devDependency</strong> — o nodemon só é necessário em
+          desenvolvimento, não em produção.</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash — nodemon em ação</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">npm run dev</span>
+
+<span class="t-blue">[nodemon] 3.0.1</span>
+<span class="t-blue">[nodemon] watching: *.*</span>
+<span class="t-blue">[nodemon] starting `node src/server.js`</span>
+<span class="t-green">Servidor rodando em http://localhost:3000</span>
+
+<span class="t-dim"># Você salva um arquivo...</span>
+
+<span class="t-blue">[nodemon] restarting due to changes...</span>
+<span class="t-blue">[nodemon] starting `node src/server.js`</span>
+<span class="t-green">Servidor rodando em http://localhost:3000</span></pre>
+        </div>
+
+        <h3 class="sub-title">Configurando o nodemon (opcional)</h3>
+        <p>Você pode criar um arquivo <code>nodemon.json</code> na raiz para configurar quais arquivos monitorar, quais
+          ignorar e outras opções:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">nodemon.json</span><span class="code-lang">JSON</span></div>
+          <pre>{
+  <span class="str">"watch"</span>: [<span class="str">"src"</span>],
+  <span class="str">"ext"</span>: <span class="str">"js,json"</span>,
+  <span class="str">"ignore"</span>: [<span class="str">"src/**/*.test.js"</span>, <span class="str">"node_modules"</span>],
+  <span class="str">"delay"</span>: <span class="num">500</span>
+}</pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- 09 GITIGNORE E ENV -->
+      <section class="section" id="gitignore">
+        <h2 class="section-title"><span class="num">09</span>.gitignore e variáveis de ambiente</h2>
+
+        <h3 class="sub-title">.gitignore</h3>
+        <p>O arquivo <code>.gitignore</code> diz ao Git quais arquivos e pastas <strong>não versionar</strong>. Crie na
+          raiz do projeto:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">.gitignore</span><span class="code-lang">text</span></div>
+          <pre><span class="com"># Dependências</span>
+node_modules/
+
+<span class="com"># Variáveis de ambiente (NUNCA no Git)</span>
+.env
+.env.local
+.env.production
+
+<span class="com"># Logs</span>
+*.log
+npm-debug.log*
+
+<span class="com"># Build e cache</span>
+dist/
+build/
+.cache/
+
+<span class="com"># Sistema operacional</span>
+.DS_Store
+Thumbs.db</pre>
+        </div>
+
+        <h3 class="sub-title">Variáveis de ambiente com dotenv</h3>
+        <p>Nunca coloque senhas, chaves de API ou strings de conexão diretamente no código. Use <strong>variáveis de
+            ambiente</strong> — elas ficam num arquivo <code>.env</code> que não vai para o Git.</p>
+
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div><span class="terminal-title">bash</span>
+          </div>
+          <pre><span class="t-prompt">$</span> <span class="t-cmd">npm install dotenv</span></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">.env — variáveis do projeto</span><span
+              class="code-lang">text</span></div>
+          <pre>PORT=3000
+NODE_ENV=development
+DB_URL=mongodb://localhost:27017/minha-api
+JWT_SECRET=sua-chave-secreta-aqui</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">.env.example — template para o time</span><span
+              class="code-lang">text</span></div>
+          <pre><span class="com"># Copie este arquivo para .env e preencha os valores</span>
+PORT=3000
+NODE_ENV=development
+DB_URL=
+JWT_SECRET=</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">src/server.js — carregando o .env</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="com">// Deve ser a PRIMEIRA linha — antes de qualquer import</span>
+<span class="fn">require</span>(<span class="str">'dotenv'</span>).<span class="fn">config</span>()
+
+<span class="kw">const</span> <span class="obj">app</span> = <span class="fn">require</span>(<span class="str">'./app'</span>)
+
+<span class="com">// Agora process.env tem todas as variáveis do .env</span>
+<span class="kw">const</span> <span class="obj">PORT</span> = <span class="obj">process</span>.<span class="prop">env</span>.<span class="prop">PORT</span> || <span class="num">3000</span>
+<span class="kw">const</span> <span class="obj">ENV</span>  = <span class="obj">process</span>.<span class="prop">env</span>.<span class="prop">NODE_ENV</span> || <span class="str">'development'</span>
+
+<span class="obj">app</span>.<span class="fn">listen</span>(<span class="obj">PORT</span>, () => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="str">`🚀 [${ENV}] http://localhost:${PORT}`</span>)
+})</pre>
+        </div>
+
+        <div class="compare-row">
+          <div class="compare-card bad">
+            <h4>❌ Nunca faça</h4>
+            <ul>
+              <li>Colocar senhas no código</li>
+              <li>Commitar o arquivo .env</li>
+              <li>Usar a mesma chave em dev e prod</li>
+              <li>Hardcodar URLs de banco</li>
+            </ul>
+          </div>
+          <div class="compare-card good">
+            <h4>✅ Boas práticas</h4>
+            <ul>
+              <li>Tudo sensível fica no .env</li>
+              <li>.env está no .gitignore</li>
+              <li>.env.example está no Git</li>
+              <li>Valores padrão seguros no código</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box yellow">
+          <span class="box-label">// Próximo tópico</span>
+          Com o projeto configurado e o servidor rodando, o <strong>Tópico 03 — Req & Res</strong> mergulha fundo nos
+          dois objetos centrais do Express: o que o cliente manda e como você responde. É a base de tudo que vem a
+          seguir.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'))
+        item.classList.add('active')
+      })
+    })
+    const sections = document.querySelectorAll('section[id]')
+    const navItems = document.querySelectorAll('.nav-item[href]')
+    window.addEventListener('scroll', () => {
+      let current = ''
+      sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 120) current = sec.id })
+      navItems.forEach(item => { item.classList.toggle('active', item.getAttribute('href') === '#' + current) })
+    })
+  </script>
+</body>
+
+</html>

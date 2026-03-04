@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de Estudos — Express.js</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent-green: #00ff9d;
+    --accent-orange: #ff6b35;
+    --accent-blue: #4d9eff;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --basic: #00ff9d;
+    --inter: #4d9eff;
+    --adv: #ff6b35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,157,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,157,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    margin-bottom: 64px;
+    animation: fadeDown 0.7s ease forwards;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-green);
+    border: 1px solid rgba(0,255,157,0.3);
+    padding: 4px 12px;
+    margin-bottom: 20px;
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+
+  h1 span {
+    color: var(--accent-green);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 560px;
+  }
+
+  .subtitle strong { color: var(--text); }
+
+  /* STATS */
+  .stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent-green);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-green), transparent);
+    margin: 48px 0;
+    opacity: 0.3;
+  }
+
+  /* LEVEL SECTION */
+  .level-section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .level-section:nth-child(1) { animation-delay: 0.2s; }
+  .level-section:nth-child(2) { animation-delay: 0.4s; }
+  .level-section:nth-child(3) { animation-delay: 0.6s; }
+
+  .level-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .level-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .badge-basic { background: rgba(0,255,157,0.1); color: var(--basic); border: 1px solid rgba(0,255,157,0.25); }
+  .badge-inter { background: rgba(77,158,255,0.1); color: var(--inter); border: 1px solid rgba(77,158,255,0.25); }
+  .badge-adv { background: rgba(255,107,53,0.1); color: var(--adv); border: 1px solid rgba(255,107,53,0.25); }
+
+  .level-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .level-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* TOPICS GRID */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 4px;
+    cursor: default;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .basic .topic-card::before { background: var(--basic); }
+  .inter .topic-card::before { background: var(--inter); }
+  .adv .topic-card::before { background: var(--adv); }
+
+  .topic-card:hover {
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+    background: #16161f;
+  }
+
+  .topic-num {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .topic-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .basic .topic-name { color: var(--basic); }
+  .inter .topic-name { color: var(--inter); }
+  .adv .topic-name { color: var(--adv); }
+
+  .topic-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .topic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .topic-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* FOOTER NOTE */
+  .note-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-orange);
+    padding: 20px 24px;
+    border-radius: 4px;
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    animation: fadeUp 0.6s ease 0.8s forwards;
+    opacity: 0;
+  }
+
+  .note-box strong { color: var(--accent-orange); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">// Plano de Estudos</div>
+    <h1>Express<span>.js</span><br>do Zero ao Deploy</h1>
+    <p class="subtitle">
+      Um roteiro estruturado e progressivo para dominar o framework web mais utilizado do ecossistema <strong>Node.js</strong>. Do servidor básico às arquiteturas de produção.
+    </p>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num">27</span>
+        <span class="stat-label">Tópicos</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">3</span>
+        <span class="stat-label">Níveis</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">Possibilidades</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- BÁSICO -->
+  <div class="level-section basic">
+    <div class="level-header">
+      <div class="level-badge badge-basic">Nível 01</div>
+      <div class="level-title">Fundamentos</div>
+      <div class="level-line"></div>
+    </div>
+    <div class="topics-grid">
+
+      <div class="topic-card">
+        <div class="topic-num">01 — TEORIA</div>
+        <div class="topic-name">O que é Express.js e por que usá-lo</div>
+        <div class="topic-desc">Diferença entre Node.js puro e Express. O papel de um framework HTTP. Comparação com outras alternativas como Fastify e Koa.</div>
+        <div class="topic-tags"><span class="topic-tag">conceito</span><span class="topic-tag">contexto</span></div>
+      </div>
+
+      <a href="topico-02-instalacao.html" class="topic-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
+        <div class="topic-num">02 — SETUP</div>
+        <div class="topic-name">Instalação e estrutura inicial</div>
+        <div class="topic-desc">npm init, instalação do Express, criando o primeiro servidor. Entendendo o arquivo package.json e o node_modules.</div>
+        <div class="topic-tags"><span class="topic-tag">prática</span><span class="topic-tag">config</span></div>
+      </a>
+
+      <a href="topico-03-req-res.html" class="topic-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
+        <div class="topic-num">03 — NÚCLEO</div>
+        <div class="topic-name">Req & Res — O ciclo de vida de uma requisição</div>
+        <div class="topic-desc">O que é req e res, como o HTTP funciona, status codes, headers, body. Teoria fundamental para todo o resto.</div>
+        <div class="topic-tags"><span class="topic-tag">teoria</span><span class="topic-tag">http</span></div>
+      </a>
+
+      <a href="topico-04-roteamento.html" class="topic-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
+        <div class="topic-num">04 — ROTAS</div>
+        <div class="topic-name">Roteamento básico — GET, POST, PUT, DELETE</div>
+        <div class="topic-desc">Criando rotas com app.get(), app.post(), app.put(), app.delete() e app.all(). Verbos HTTP e quando usar cada um.</div>
+        <div class="topic-tags"><span class="topic-tag">métodos</span><span class="topic-tag">rest</span></div>
+      </a>
+
+      <a href="topico-05-parametros.html" class="topic-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
+        <div class="topic-num">05 — PARÂMETROS</div>
+        <div class="topic-name">Parâmetros de rota, query e body</div>
+        <div class="topic-desc">req.params, req.query e req.body. Diferença entre cada um e como extrair dados de uma requisição HTTP de forma correta.</div>
+        <div class="topic-tags"><span class="topic-tag">dados</span><span class="topic-tag">input</span></div>
+      </a>
+
+      <div class="topic-card">
+        <div class="topic-num">06 — TEORIA</div>
+        <div class="topic-name">O que são Middlewares</div>
+        <div class="topic-desc">Conceito central do Express. O pipeline de middlewares, a função next(), a ordem de execução e como o Express processa cada requisição internamente.</div>
+        <div class="topic-tags"><span class="topic-tag">conceito-chave</span><span class="topic-tag">pipeline</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">07 — PRÁTICA</div>
+        <div class="topic-name">Middlewares built-in do Express</div>
+        <div class="topic-desc">express.json(), express.urlencoded(), express.static(). Como configurar e usar os middlewares que acompanham o Express por padrão.</div>
+        <div class="topic-tags"><span class="topic-tag">métodos</span><span class="topic-tag">built-in</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">08 — RESPOSTAS</div>
+        <div class="topic-name">Métodos de resposta do res</div>
+        <div class="topic-desc">res.send(), res.json(), res.status(), res.redirect(), res.render(), res.sendFile(), res.end(). Quando e como usar cada método corretamente.</div>
+        <div class="topic-tags"><span class="topic-tag">métodos</span><span class="topic-tag">output</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">09 — ORGANIZAÇÃO</div>
+        <div class="topic-name">Express Router — Modularizando rotas</div>
+        <div class="topic-desc">express.Router() para separar rotas em arquivos. Estrutura de pastas recomendada e como montar sub-aplicações limpas e escaláveis.</div>
+        <div class="topic-tags"><span class="topic-tag">arquitetura</span><span class="topic-tag">organização</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INTERMEDIÁRIO -->
+  <div class="level-section inter">
+    <div class="level-header">
+      <div class="level-badge badge-inter">Nível 02</div>
+      <div class="level-title">Intermediário</div>
+      <div class="level-line"></div>
+    </div>
+    <div class="topics-grid">
+
+      <div class="topic-card">
+        <div class="topic-num">10 — MIDDLEWARES</div>
+        <div class="topic-name">Criando seus próprios Middlewares</div>
+        <div class="topic-desc">Escrevendo middlewares customizados para logging, autenticação, validação. Middlewares de rota vs globais. O padrão (req, res, next).</div>
+        <div class="topic-tags"><span class="topic-tag">customização</span><span class="topic-tag">padrões</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">11 — ERROS</div>
+        <div class="topic-name">Error Handling — Tratamento de erros</div>
+        <div class="topic-desc">Middleware de erro com 4 parâmetros (err, req, res, next). Erros síncronos, assíncronos, operacionais vs programáticos e boas práticas.</div>
+        <div class="topic-tags"><span class="topic-tag">segurança</span><span class="topic-tag">estabilidade</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">12 — BANCO</div>
+        <div class="topic-name">Conectando ao banco de dados</div>
+        <div class="topic-desc">Integração com MongoDB (Mongoose) e PostgreSQL (Prisma/Sequelize). Padrões de conexão, modelos e operações CRUD completas com Express.</div>
+        <div class="topic-tags"><span class="topic-tag">banco</span><span class="topic-tag">crud</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">13 — AUTH</div>
+        <div class="topic-name">Autenticação com JWT</div>
+        <div class="topic-desc">Teoria de tokens, jsonwebtoken, criação e verificação de tokens, refresh tokens, middleware de autenticação, rotas protegidas.</div>
+        <div class="topic-tags"><span class="topic-tag">segurança</span><span class="topic-tag">jwt</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">14 — VALIDAÇÃO</div>
+        <div class="topic-name">Validação de dados com Zod / Joi</div>
+        <div class="topic-desc">Validando e sanitizando req.body, req.params e req.query. Integração com Zod ou Joi como middleware de validação reutilizável.</div>
+        <div class="topic-tags"><span class="topic-tag">dados</span><span class="topic-tag">segurança</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">15 — CORS</div>
+        <div class="topic-name">CORS e Headers de segurança</div>
+        <div class="topic-desc">O que é CORS, como configurar o pacote cors(), origens permitidas, credenciais. Helmet.js para headers de segurança HTTP.</div>
+        <div class="topic-tags"><span class="topic-tag">segurança</span><span class="topic-tag">http</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">16 — UPLOAD</div>
+        <div class="topic-name">Upload de arquivos com Multer</div>
+        <div class="topic-desc">Configurando o Multer, upload single e multiple, filtros de tipo, limites de tamanho, salvando em disco ou em memória.</div>
+        <div class="topic-tags"><span class="topic-tag">arquivos</span><span class="topic-tag">multipart</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">17 — ENV</div>
+        <div class="topic-name">Variáveis de ambiente e configuração</div>
+        <div class="topic-desc">dotenv, process.env, separando ambientes (dev, test, prod), nunca expor segredos, estrutura de config centralizada.</div>
+        <div class="topic-tags"><span class="topic-tag">config</span><span class="topic-tag">boas práticas</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">18 — ASYNC</div>
+        <div class="topic-name">Async/Await e tratamento de Promise</div>
+        <div class="topic-desc">Wrapping assíncrono com try/catch, express-async-errors, padrões para evitar callbacks não tratados e crashes silenciosos.</div>
+        <div class="topic-tags"><span class="topic-tag">assíncrono</span><span class="topic-tag">node</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">19 — TESTES</div>
+        <div class="topic-name">Testando a API com Jest + Supertest</div>
+        <div class="topic-desc">Testes unitários e de integração. Como simular requisições HTTP, testar rotas e middlewares sem subir um servidor real.</div>
+        <div class="topic-tags"><span class="topic-tag">qualidade</span><span class="topic-tag">tdd</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AVANÇADO -->
+  <div class="level-section adv">
+    <div class="level-header">
+      <div class="level-badge badge-adv">Nível 03</div>
+      <div class="level-title">Avançado</div>
+      <div class="level-line"></div>
+    </div>
+    <div class="topics-grid">
+
+      <div class="topic-card">
+        <div class="topic-num">20 — ARQUITETURA</div>
+        <div class="topic-name">Arquitetura em camadas — MVC e além</div>
+        <div class="topic-desc">Separação em Controllers, Services e Repositories. Responsabilidades de cada camada, inversão de dependência e como escalar o projeto.</div>
+        <div class="topic-tags"><span class="topic-tag">mvc</span><span class="topic-tag">design</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">21 — PERFORMANCE</div>
+        <div class="topic-name">Cache com Redis</div>
+        <div class="topic-desc">Estratégias de cache de respostas, cache-aside, invalidação, rate limiting com Redis, compressão de respostas com compression.</div>
+        <div class="topic-tags"><span class="topic-tag">performance</span><span class="topic-tag">redis</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">22 — RATE LIMIT</div>
+        <div class="topic-name">Rate Limiting e proteção contra ataques</div>
+        <div class="topic-desc">express-rate-limit, limitando por IP, por usuário, por rota. Proteção contra brute force, DDoS e abuso de APIs públicas.</div>
+        <div class="topic-tags"><span class="topic-tag">segurança</span><span class="topic-tag">proteção</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">23 — DOCS</div>
+        <div class="topic-name">Documentação com Swagger / OpenAPI</div>
+        <div class="topic-desc">swagger-jsdoc e swagger-ui-express para gerar documentação interativa automaticamente a partir das rotas e schemas da sua API.</div>
+        <div class="topic-tags"><span class="topic-tag">docs</span><span class="topic-tag">openapi</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">24 — LOGS</div>
+        <div class="topic-name">Logging profissional com Winston / Pino</div>
+        <div class="topic-desc">Níveis de log, transports, logging estruturado em JSON, correlação de requests com IDs únicos, integração com serviços de monitoramento.</div>
+        <div class="topic-tags"><span class="topic-tag">observabilidade</span><span class="topic-tag">prod</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">25 — WEBSOCKET</div>
+        <div class="topic-name">Tempo real com Socket.io</div>
+        <div class="topic-desc">Integrando Socket.io com um servidor Express. Eventos, salas (rooms), namespaces, autenticação em WebSockets, casos de uso reais.</div>
+        <div class="topic-tags"><span class="topic-tag">realtime</span><span class="topic-tag">ws</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">26 — DEPLOY</div>
+        <div class="topic-name">Deploy em produção com Docker e PM2</div>
+        <div class="topic-desc">Criando Dockerfile, docker-compose, PM2 para cluster mode, variáveis de ambiente em prod, NGINX como reverse proxy, HTTPS.</div>
+        <div class="topic-tags"><span class="topic-tag">devops</span><span class="topic-tag">docker</span></div>
+      </div>
+
+      <div class="topic-card">
+        <div class="topic-num">27 — PROJETO</div>
+        <div class="topic-name">API REST completa — Projeto final</div>
+        <div class="topic-desc">Construindo uma API do zero com autenticação, CRUD, validação, testes, documentação, logs, cache e deploy. Consolidando todo o aprendizado.</div>
+        <div class="topic-tags"><span class="topic-tag">projeto</span><span class="topic-tag">consolidação</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="note-box">
+    <strong>// Como usar este plano:</strong><br>
+    Cada tópico foi projetado para ser solicitado individualmente — peça para aprofundar qualquer um deles e receberá uma aula completa com teoria, código funcional e exemplos reais. Os tópicos seguem uma progressão lógica, mas você pode navegar de forma não-linear se já tiver base em alguma área.
+  </div>
+
+</div>
+</body>
+</html>

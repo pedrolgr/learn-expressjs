@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tópico 03 — Req & Res | Express.js</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1a1a1a;
+      --border: #242424;
+      --border2: #2e2e2e;
+      --green: #00ff9d;
+      --green-dim: rgba(0, 255, 157, 0.08);
+      --blue: #4d9eff;
+      --blue-dim: rgba(77, 158, 255, 0.08);
+      --orange: #ff9500;
+      --orange-dim: rgba(255, 149, 0, 0.08);
+      --red: #ff453a;
+      --red-dim: rgba(255, 69, 58, 0.08);
+      --purple: #bf5af2;
+      --purple-dim: rgba(191, 90, 242, 0.08);
+      --yellow: #ffd60a;
+      --text: #e8e8e8;
+      --muted: #666;
+      --muted2: #888;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* NOISE OVERLAY */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.4;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR NAV */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      background: var(--surface);
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .sidebar-logo .back {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-logo .lesson-id {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .nav-group-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 8px 20px;
+      font-size: 11px;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: var(--text);
+      background: var(--green-dim);
+      border-left-color: var(--green);
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      flex: 1;
+      max-width: 800px;
+      padding: 56px 48px;
+      overflow-x: hidden;
+    }
+
+    /* SECTION */
+    .section {
+      margin-bottom: 72px;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .section:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .section:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .section:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .section:nth-child(4) {
+      animation-delay: 0.35s;
+    }
+
+    .section:nth-child(5) {
+      animation-delay: 0.4s;
+    }
+
+    .section:nth-child(6) {
+      animation-delay: 0.45s;
+    }
+
+    .section:nth-child(7) {
+      animation-delay: 0.5s;
+    }
+
+    .section:nth-child(8) {
+      animation-delay: 0.55s;
+    }
+
+    /* LESSON HEADER */
+    .lesson-header {
+      margin-bottom: 56px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeIn 0.6s ease 0.05s forwards;
+    }
+
+    .breadcrumb {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .breadcrumb span {
+      color: var(--green);
+    }
+
+    h1.lesson-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    h1.lesson-title em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .lesson-intro {
+      font-size: 13px;
+      color: var(--muted2);
+      max-width: 560px;
+      line-height: 1.9;
+    }
+
+    .lesson-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+
+    /* SECTION TITLES */
+    h2.section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2.section-title .num {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    h3.sub-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      margin: 28px 0 12px;
+      color: var(--text);
+    }
+
+    /* PROSE */
+    p {
+      color: var(--muted2);
+      margin-bottom: 16px;
+      line-height: 1.85;
+      font-size: 13px;
+    }
+
+    p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .code-lang {
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+    }
+
+    /* SYNTAX HIGHLIGHT */
+    .kw {
+      color: #ff79c6;
+    }
+
+    /* keywords */
+    .fn {
+      color: #50fa7b;
+    }
+
+    /* functions */
+    .str {
+      color: #f1fa8c;
+    }
+
+    /* strings */
+    .num {
+      color: #bd93f9;
+    }
+
+    /* numbers */
+    .com {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    /* comments */
+    .obj {
+      color: #8be9fd;
+    }
+
+    /* objects/vars */
+    .prop {
+      color: #ffb86c;
+    }
+
+    /* properties */
+    .pun {
+      color: #ff6b6b;
+    }
+
+    /* punctuation highlight */
+
+    /* INFO BOXES */
+    .box {
+      border-radius: 4px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      border: 1px solid;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .box-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .box.tip {
+      background: var(--green-dim);
+      border-color: rgba(0, 255, 157, 0.2);
+      color: #aaa;
+    }
+
+    .box.tip .box-label {
+      color: var(--green);
+    }
+
+    .box.warn {
+      background: var(--orange-dim);
+      border-color: rgba(255, 149, 0, 0.2);
+      color: #aaa;
+    }
+
+    .box.warn .box-label {
+      color: var(--orange);
+    }
+
+    .box.info {
+      background: var(--blue-dim);
+      border-color: rgba(77, 158, 255, 0.2);
+      color: #aaa;
+    }
+
+    .box.info .box-label {
+      color: var(--blue);
+    }
+
+    .box.danger {
+      background: var(--red-dim);
+      border-color: rgba(255, 69, 58, 0.2);
+      color: #aaa;
+    }
+
+    .box.danger .box-label {
+      color: var(--red);
+    }
+
+    /* DIAGRAM */
+    .diagram {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 28px;
+      margin: 24px 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .flow-box {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      padding: 10px 16px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+
+    .flow-box.highlight {
+      border-color: rgba(0, 255, 157, 0.4);
+      color: var(--green);
+    }
+
+    .flow-box.highlight-b {
+      border-color: rgba(77, 158, 255, 0.4);
+      color: var(--blue);
+    }
+
+    .flow-arrow {
+      color: var(--muted);
+      padding: 0 8px;
+      font-size: 16px;
+    }
+
+    /* TABLE */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead tr {
+      border-bottom: 1px solid var(--border2);
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted2);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--surface2);
+    }
+
+    .td-code {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--green);
+      font-size: 11px;
+    }
+
+    /* STATUS CODES */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .status-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 4px;
+    }
+
+    .status-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .status-name {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .status-desc {
+      font-size: 11px;
+      color: var(--muted2);
+    }
+
+    .s2xx .status-num {
+      color: var(--green);
+    }
+
+    .s3xx .status-num {
+      color: var(--blue);
+    }
+
+    .s4xx .status-num {
+      color: var(--orange);
+    }
+
+    .s5xx .status-num {
+      color: var(--red);
+    }
+
+    /* DIVIDER */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* INLINE CODE */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: var(--green);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        padding: 32px 20px;
+      }
+
+      h1.lesson-title {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <a href="expressjs-plano.html" class="back" style="text-decoration: none;">← Express.js</a>
+        <div class="lesson-id">Tópico 03</div>
+      </div>
+      <div class="nav-group-label">Nesta aula</div>
+      <a class="nav-item active" href="#intro">O ciclo HTTP</a>
+      <a class="nav-item" href="#request">O objeto req</a>
+      <a class="nav-item" href="#response">O objeto res</a>
+      <a class="nav-item" href="#status">Status Codes</a>
+      <a class="nav-item" href="#headers">Headers</a>
+      <a class="nav-item" href="#body">Body</a>
+      <a class="nav-item" href="#pratica">Código completo</a>
+      <a class="nav-item" href="#resumo">Resumo</a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- HEADER -->
+      <div class="lesson-header">
+        <div class="breadcrumb">Fundamentos → <span>Tópico 03</span></div>
+        <h1 class="lesson-title">Req <em>&</em> Res<br>O ciclo de vida</h1>
+        <p class="lesson-intro">
+          Entender <strong>req</strong> e <strong>res</strong> é entender como o Express funciona por dentro. Toda
+          requisição que chega ao seu servidor passa por esses dois objetos — eles carregam tudo que você precisa para
+          ler, processar e responder.
+        </p>
+        <div class="lesson-meta">
+          <span class="meta-chip">Nível 01 — Básico</span>
+          <span class="meta-chip">Teoria + Código</span>
+          <span class="meta-chip">Essencial</span>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 1: CICLO HTTP -->
+      <section class="section" id="intro">
+        <h2 class="section-title">
+          <span class="num">01</span>
+          O ciclo HTTP — a base de tudo
+        </h2>
+
+        <p>Antes de entrar no Express, você precisa entender o protocolo que ele usa: o <strong>HTTP (HyperText Transfer
+            Protocol)</strong>. Todo servidor web — Express, Django, Rails, Spring — funciona em cima dessa mesma
+          lógica.</p>
+
+        <p>O HTTP é um protocolo de <strong>requisição e resposta</strong>. Isso significa que a comunicação sempre
+          segue esse padrão: alguém envia uma requisição, o servidor processa e devolve uma resposta. Simples assim.</p>
+
+        <div class="diagram">
+          <div
+            style="font-size:10px; color: var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
+            Ciclo de uma requisição</div>
+          <div class="flow">
+            <div class="flow-box">🌐 Cliente<br><span style="color:var(--muted);font-size:10px;">(Browser / App)</span>
+            </div>
+            <div class="flow-arrow">──── req ────▶</div>
+            <div class="flow-box highlight">Express<br><span style="font-size:10px;">processa</span></div>
+            <div class="flow-arrow">◀──── res ────</div>
+            <div class="flow-box">🌐 Cliente<br><span style="color:var(--muted);font-size:10px;">recebe resposta</span>
+            </div>
+          </div>
+          <div style="margin-top: 20px; display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
+            <div style="font-size:11px; color: var(--muted);">
+              <span style="color:var(--green)">req</span> → contém: método, URL, headers, body, params
+            </div>
+            <div style="font-size:11px; color: var(--muted);">
+              <span style="color:var(--blue)">res</span> → contém: status, headers, body da resposta
+            </div>
+          </div>
+        </div>
+
+        <p>Quando o Express recebe uma requisição HTTP, ele cria automaticamente dois objetos e os passa para a sua
+          função de rota:</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-title">Estrutura básica de uma rota</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/usuarios'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="com">// req = Request  → o que o cliente ENVIOU para o servidor</span>
+  <span class="com">// res = Response → o que o servidor vai DEVOLVER ao cliente</span>
+
+  <span class="obj">res</span>.<span class="fn">send</span>(<span class="str">'Hello!'</span>)
+})</pre>
+        </div>
+
+        <div class="box info">
+          <span class="box-label">// Conceito chave</span>
+          <code>req</code> e <code>res</code> são objetos criados pelo Express a partir da requisição HTTP. Eles
+          <strong>extendem</strong> os objetos nativos do Node.js (<code>http.IncomingMessage</code> e
+          <code>http.ServerResponse</code>) adicionando dezenas de propriedades e métodos úteis.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 2: REQ -->
+      <section class="section" id="request">
+        <h2 class="section-title">
+          <span class="num">02</span>
+          O objeto <code style="font-size:18px">req</code> — a requisição
+        </h2>
+
+        <p>O objeto <strong>req</strong> (request) representa tudo que o cliente enviou ao servidor. Pense nele como uma
+          "caixa" que contém todas as informações da requisição: de onde veio, o que quer, quais dados trouxe.</p>
+
+        <h3 class="sub-title">req.method</h3>
+        <p>Indica o <strong>verbo HTTP</strong> usado na requisição. É sempre uma string em maiúsculo.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.method</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="obj">app</span>.<span class="fn">all</span>(<span class="str">'/teste'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">method</span>)
+  <span class="com">// GET, POST, PUT, PATCH, DELETE...</span>
+})</pre>
+        </div>
+
+        <h3 class="sub-title">req.url e req.path</h3>
+        <p><code>req.url</code> retorna a URL completa incluindo query string. <code>req.path</code> retorna apenas o
+          caminho, sem parâmetros.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.url vs req.path</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="com">// Requisição para: GET /produtos?categoria=eletronicos&pagina=2</span>
+
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/produtos'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">url</span>)   <span class="com">// '/produtos?categoria=eletronicos&pagina=2'</span>
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">path</span>)  <span class="com">// '/produtos'</span>
+})</pre>
+        </div>
+
+        <h3 class="sub-title">req.params</h3>
+        <p>Contém os <strong>parâmetros de rota</strong> — valores dinâmicos definidos com <code>:</code> na URL. São
+          parte da estrutura da rota, não opcionais.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.params</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="com">// Rota com parâmetros dinâmicos</span>
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/usuarios/:id/posts/:postId'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">params</span>)
+  <span class="com">// { id: '42', postId: '7' }</span>
+
+  <span class="kw">const</span> { <span class="obj">id</span>, <span class="obj">postId</span> } = <span class="obj">req</span>.<span class="prop">params</span>
+  <span class="obj">res</span>.<span class="fn">json</span>({ usuarioId: <span class="obj">id</span>, postId: <span class="obj">postId</span> })
+})
+
+<span class="com">// GET /usuarios/42/posts/7</span>
+<span class="com">// ↑ id = '42'   postId = '7'</span></pre>
+        </div>
+
+        <div class="box warn">
+          <span class="box-label">// Atenção</span>
+          Os valores de <code>req.params</code> são <strong>sempre strings</strong>, mesmo que pareçam números. Se
+          precisar de um número, converta: <code>Number(req.params.id)</code> ou <code>parseInt(req.params.id)</code>.
+        </div>
+
+        <h3 class="sub-title">req.query</h3>
+        <p>Contém os <strong>parâmetros de query string</strong> — os valores que vêm após o <code>?</code> na URL. São
+          opcionais e usados para filtros, paginação, ordenação.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.query</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="com">// GET /produtos?categoria=eletronicos&pagina=2&limite=10</span>
+
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/produtos'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">query</span>)
+  <span class="com">// { categoria: 'eletronicos', pagina: '2', limite: '10' }</span>
+
+  <span class="kw">const</span> { <span class="obj">categoria</span>, <span class="obj">pagina</span> = <span class="str">'1'</span>, <span class="obj">limite</span> = <span class="str">'10'</span> } = <span class="obj">req</span>.<span class="prop">query</span>
+
+  <span class="obj">res</span>.<span class="fn">json</span>({
+    categoria,
+    pagina: <span class="fn">Number</span>(<span class="obj">pagina</span>),
+    limite: <span class="fn">Number</span>(<span class="obj">limite</span>)
+  })
+})</pre>
+        </div>
+
+        <h3 class="sub-title">req.body</h3>
+        <p>Contém os <strong>dados enviados no corpo</strong> da requisição. Geralmente usado com POST, PUT e PATCH.
+          Para acessar o body, o Express precisa de um middleware de parsing.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.body com middleware</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="kw">const</span> <span class="obj">express</span> = <span class="fn">require</span>(<span class="str">'express'</span>)
+<span class="kw">const</span> <span class="obj">app</span> = <span class="fn">express</span>()
+
+<span class="com">// Middleware necessário para ler req.body em JSON</span>
+<span class="obj">app</span>.<span class="fn">use</span>(<span class="obj">express</span>.<span class="fn">json</span>())
+
+<span class="obj">app</span>.<span class="fn">post</span>(<span class="str">'/usuarios'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">req</span>.<span class="prop">body</span>)
+  <span class="com">// { nome: 'João', email: 'joao@email.com', idade: 28 }</span>
+
+  <span class="kw">const</span> { <span class="obj">nome</span>, <span class="obj">email</span> } = <span class="obj">req</span>.<span class="prop">body</span>
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ mensagem: <span class="str">`Usuário ${nome} criado!`</span> })
+})</pre>
+        </div>
+
+        <h3 class="sub-title">req.headers</h3>
+        <p>Contém todos os <strong>headers HTTP</strong> enviados pelo cliente. Úteis para autenticação (Authorization),
+          tipo de conteúdo (Content-Type), informações do cliente (User-Agent), etc.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">req.headers</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/perfil'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="com">// Headers estão sempre em lowercase</span>
+  <span class="kw">const</span> <span class="obj">token</span> = <span class="obj">req</span>.<span class="prop">headers</span>[<span class="str">'authorization'</span>]
+  <span class="kw">const</span> <span class="obj">contentType</span> = <span class="obj">req</span>.<span class="prop">headers</span>[<span class="str">'content-type'</span>]
+  <span class="kw">const</span> <span class="obj">userAgent</span> = <span class="obj">req</span>.<span class="prop">headers</span>[<span class="str">'user-agent'</span>]
+
+  <span class="com">// Atalho para um header específico</span>
+  <span class="kw">const</span> <span class="obj">auth</span> = <span class="obj">req</span>.<span class="fn">get</span>(<span class="str">'Authorization'</span>) <span class="com">// case-insensitive</span>
+
+  <span class="obj">res</span>.<span class="fn">json</span>({ token, userAgent })
+})</pre>
+        </div>
+
+        <h3 class="sub-title">Outras propriedades úteis do req</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Propriedade</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-code">req.ip</td>
+                <td>String</td>
+                <td>IP do cliente que fez a requisição</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.hostname</td>
+                <td>String</td>
+                <td>Hostname do servidor (ex: localhost)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.protocol</td>
+                <td>String</td>
+                <td><code>http</code> ou <code>https</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">req.secure</td>
+                <td>Boolean</td>
+                <td>True se a conexão for HTTPS</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.cookies</td>
+                <td>Object</td>
+                <td>Cookies (requer middleware cookie-parser)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.originalUrl</td>
+                <td>String</td>
+                <td>URL original antes de qualquer reescrita</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.xhr</td>
+                <td>Boolean</td>
+                <td>True se a req veio via XMLHttpRequest (AJAX)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 3: RES -->
+      <section class="section" id="response">
+        <h2 class="section-title">
+          <span class="num">03</span>
+          O objeto <code style="font-size:18px">res</code> — a resposta
+        </h2>
+
+        <p>O objeto <strong>res</strong> (response) é o que você usa para <strong>construir e enviar a resposta</strong>
+          de volta ao cliente. Você decide o status code, os headers e o corpo da resposta.</p>
+
+        <div class="box tip">
+          <span class="box-label">// Regra fundamental</span>
+          Você deve sempre encerrar a requisição enviando uma resposta. Se não enviar, o cliente ficará esperando para
+          sempre até o timeout. Use <code>res.send()</code>, <code>res.json()</code>, <code>res.redirect()</code> ou
+          <code>res.end()</code>.
+        </div>
+
+        <h3 class="sub-title">res.send()</h3>
+        <p>O método mais genérico. Envia uma resposta de qualquer tipo — string, HTML, Buffer, objeto. O Content-Type é
+          definido automaticamente pelo tipo do dado.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">res.send()</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="com">// Enviando uma string</span>
+<span class="obj">res</span>.<span class="fn">send</span>(<span class="str">'Olá mundo!'</span>)
+<span class="com">// Content-Type: text/html</span>
+
+<span class="com">// Enviando HTML</span>
+<span class="obj">res</span>.<span class="fn">send</span>(<span class="str">'&lt;h1&gt;Bem vindo!&lt;/h1&gt;'</span>)
+
+<span class="com">// Enviando um Buffer</span>
+<span class="obj">res</span>.<span class="fn">send</span>(<span class="obj">Buffer</span>.<span class="fn">from</span>(<span class="str">'hello'</span>))
+<span class="com">// Content-Type: application/octet-stream</span></pre>
+        </div>
+
+        <h3 class="sub-title">res.json()</h3>
+        <p>Envia uma resposta JSON. Define automaticamente o <code>Content-Type: application/json</code> e serializa o
+          objeto. <strong>Preferido para APIs REST.</strong></p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">res.json()</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="com">// Enviando um objeto como JSON</span>
+<span class="obj">res</span>.<span class="fn">json</span>({ nome: <span class="str">'João'</span>, idade: <span class="num">28</span> })
+
+<span class="com">// Enviando um array</span>
+<span class="obj">res</span>.<span class="fn">json</span>([{ <span class="prop">id</span>: <span class="num">1</span> }, { <span class="prop">id</span>: <span class="num">2</span> }])
+
+<span class="com">// Combinando com status</span>
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({
+  <span class="prop">sucesso</span>: <span class="kw">true</span>,
+  <span class="prop">dados</span>: { <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">nome</span>: <span class="str">'João'</span> }
+})</pre>
+        </div>
+
+        <h3 class="sub-title">res.status()</h3>
+        <p>Define o <strong>HTTP status code</strong> da resposta. Retorna o próprio <code>res</code>, permitindo
+          encadeamento (chaining). Sempre use o status correto para comunicar o resultado da operação.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">res.status()</span><span class="code-lang">JavaScript</span>
+          </div>
+          <pre><span class="com">// Status sem corpo</span>
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">204</span>).<span class="fn">end</span>()   <span class="com">// No Content (delete, por exemplo)</span>
+
+<span class="com">// Status com JSON (o padrão)</span>
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({ <span class="prop">ok</span>: <span class="kw">true</span> })
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ <span class="prop">id</span>: <span class="num">1</span> })        <span class="com">// Created</span>
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Dados inválidos'</span> })
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Não autorizado'</span> })
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Não encontrado'</span> })
+<span class="obj">res</span>.<span class="fn">status</span>(<span class="num">500</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Erro interno'</span> })</pre>
+        </div>
+
+        <h3 class="sub-title">res.redirect()</h3>
+        <p>Redireciona o cliente para outra URL. O status padrão é <code>302</code> (Found/Temporary), mas pode ser
+          <code>301</code> (Permanent).</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">res.redirect()</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="com">// Redirect temporário (302 padrão)</span>
+<span class="obj">res</span>.<span class="fn">redirect</span>(<span class="str">'/nova-url'</span>)
+
+<span class="com">// Redirect permanente (301)</span>
+<span class="obj">res</span>.<span class="fn">redirect</span>(<span class="num">301</span>, <span class="str">'/nova-url-permanente'</span>)
+
+<span class="com">// Redirect para URL externa</span>
+<span class="obj">res</span>.<span class="fn">redirect</span>(<span class="str">'https://google.com'</span>)
+
+<span class="com">// Redirect relativo (volta uma pasta)</span>
+<span class="obj">res</span>.<span class="fn">redirect</span>(<span class="str">'..'</span>)</pre>
+        </div>
+
+        <h3 class="sub-title">res.sendFile()</h3>
+        <p>Envia um arquivo como resposta. O caminho deve ser <strong>absoluto</strong> ou relativo ao <code>root</code>
+          definido nas opções.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">res.sendFile()</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="kw">const</span> <span class="obj">path</span> = <span class="fn">require</span>(<span class="str">'path'</span>)
+
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/download'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> <span class="obj">filePath</span> = <span class="obj">path</span>.<span class="fn">join</span>(<span class="obj">__dirname</span>, <span class="str">'files'</span>, <span class="str">'relatorio.pdf'</span>)
+  <span class="obj">res</span>.<span class="fn">sendFile</span>(<span class="obj">filePath</span>)
+})</pre>
+        </div>
+
+        <h3 class="sub-title">res.set() e res.get()</h3>
+        <p>Para definir ou ler headers na resposta manualmente.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">Manipulando headers da resposta</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/dados'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="com">// Definindo um header</span>
+  <span class="obj">res</span>.<span class="fn">set</span>(<span class="str">'X-Custom-Header'</span>, <span class="str">'meu-valor'</span>)
+  <span class="obj">res</span>.<span class="fn">set</span>(<span class="str">'Cache-Control'</span>, <span class="str">'no-cache'</span>)
+
+  <span class="com">// Definindo múltiplos de uma vez</span>
+  <span class="obj">res</span>.<span class="fn">set</span>({
+    <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+    <span class="str">'X-Powered-By'</span>: <span class="str">'Express'</span>
+  })
+
+  <span class="com">// Lendo um header da resposta</span>
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="obj">res</span>.<span class="fn">get</span>(<span class="str">'Content-Type'</span>))
+
+  <span class="obj">res</span>.<span class="fn">json</span>({ <span class="prop">ok</span>: <span class="kw">true</span> })
+})</pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 4: STATUS CODES -->
+      <section class="section" id="status">
+        <h2 class="section-title">
+          <span class="num">04</span>
+          Status Codes — comunicando o resultado
+        </h2>
+
+        <p>Os status codes HTTP são a linguagem que o servidor usa para dizer ao cliente <strong>o que
+            aconteceu</strong> com a requisição. Usar o status correto é uma questão de semântica e boa prática de API.
+        </p>
+
+        <div class="status-grid">
+          <div class="status-card s2xx">
+            <div class="status-num">200</div>
+            <div class="status-name">OK</div>
+            <div class="status-desc">Sucesso genérico. Usado em GET bem-sucedido.</div>
+          </div>
+          <div class="status-card s2xx">
+            <div class="status-num">201</div>
+            <div class="status-name">Created</div>
+            <div class="status-desc">Recurso criado com sucesso. Usar em POST.</div>
+          </div>
+          <div class="status-card s2xx">
+            <div class="status-num">204</div>
+            <div class="status-name">No Content</div>
+            <div class="status-desc">Sucesso sem corpo. Ideal para DELETE.</div>
+          </div>
+          <div class="status-card s3xx">
+            <div class="status-num">301</div>
+            <div class="status-name">Moved Perm.</div>
+            <div class="status-desc">Redirect permanente. Browsers guardam em cache.</div>
+          </div>
+          <div class="status-card s3xx">
+            <div class="status-num">302</div>
+            <div class="status-name">Found</div>
+            <div class="status-desc">Redirect temporário. O padrão do res.redirect().</div>
+          </div>
+          <div class="status-card s4xx">
+            <div class="status-num">400</div>
+            <div class="status-name">Bad Request</div>
+            <div class="status-desc">Dados inválidos ou mal formatados enviados.</div>
+          </div>
+          <div class="status-card s4xx">
+            <div class="status-num">401</div>
+            <div class="status-name">Unauthorized</div>
+            <div class="status-desc">Não autenticado. Precisa fazer login.</div>
+          </div>
+          <div class="status-card s4xx">
+            <div class="status-num">403</div>
+            <div class="status-name">Forbidden</div>
+            <div class="status-desc">Autenticado, mas sem permissão.</div>
+          </div>
+          <div class="status-card s4xx">
+            <div class="status-num">404</div>
+            <div class="status-name">Not Found</div>
+            <div class="status-desc">Recurso não encontrado no servidor.</div>
+          </div>
+          <div class="status-card s4xx">
+            <div class="status-num">422</div>
+            <div class="status-name">Unprocessable</div>
+            <div class="status-desc">Dados válidos mas falham nas regras de negócio.</div>
+          </div>
+          <div class="status-card s5xx">
+            <div class="status-num">500</div>
+            <div class="status-name">Server Error</div>
+            <div class="status-desc">Erro interno. Nunca esperado em produção.</div>
+          </div>
+          <div class="status-card s5xx">
+            <div class="status-num">503</div>
+            <div class="status-name">Unavailable</div>
+            <div class="status-desc">Servidor sobrecarregado ou em manutenção.</div>
+          </div>
+        </div>
+
+        <div class="box tip">
+          <span class="box-label">// Dica de ouro</span>
+          <strong>4xx</strong> = erro do lado do cliente (ele fez algo errado) → nunca logue como erro crítico.<br>
+          <strong>5xx</strong> = erro do lado do servidor (você fez algo errado) → sempre monitore e alerte.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 5: HEADERS -->
+      <section class="section" id="headers">
+        <h2 class="section-title">
+          <span class="num">05</span>
+          Headers — metadados da comunicação
+        </h2>
+
+        <p>Headers são pares chave-valor que carregam <strong>metadados sobre a requisição ou resposta</strong>. Eles
+          não fazem parte do conteúdo em si, mas informam ao servidor/cliente como interpretar aquele conteúdo.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Header</th>
+                <th>Direção</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-code">Content-Type</td>
+                <td>Req + Res</td>
+                <td>Tipo do conteúdo: <code>application/json</code>, <code>text/html</code>,
+                  <code>multipart/form-data</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">Authorization</td>
+                <td>Request</td>
+                <td>Token de autenticação: <code>Bearer eyJhbGc...</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">Accept</td>
+                <td>Request</td>
+                <td>Quais tipos de resposta o cliente aceita</td>
+              </tr>
+              <tr>
+                <td class="td-code">Cache-Control</td>
+                <td>Res</td>
+                <td>Instruções de cache: <code>no-cache</code>, <code>max-age=3600</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">Location</td>
+                <td>Response</td>
+                <td>URL de redirecionamento após 201 ou 3xx</td>
+              </tr>
+              <tr>
+                <td class="td-code">User-Agent</td>
+                <td>Request</td>
+                <td>Identifica o cliente: browser, app, curl...</td>
+              </tr>
+              <tr>
+                <td class="td-code">Cookie / Set-Cookie</td>
+                <td>Req / Res</td>
+                <td>Envio e definição de cookies</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 6: BODY -->
+      <section class="section" id="body">
+        <h2 class="section-title">
+          <span class="num">06</span>
+          Body — o conteúdo da mensagem
+        </h2>
+
+        <p>O body (corpo) é onde os dados reais são transportados. Nem todas as requisições têm body — GET e DELETE
+          geralmente não têm. POST, PUT e PATCH quase sempre têm.</p>
+
+        <h3 class="sub-title">Tipos de body mais comuns</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Content-Type</th>
+                <th>Quando usar</th>
+                <th>Middleware necessário</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-code">application/json</td>
+                <td>APIs REST — o padrão atual</td>
+                <td><code>express.json()</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">application/x-www-form-urlencoded</td>
+                <td>Formulários HTML tradicionais</td>
+                <td><code>express.urlencoded()</code></td>
+              </tr>
+              <tr>
+                <td class="td-code">multipart/form-data</td>
+                <td>Upload de arquivos</td>
+                <td><code>multer</code> (pacote externo)</td>
+              </tr>
+              <tr>
+                <td class="td-code">text/plain</td>
+                <td>Texto simples</td>
+                <td><code>express.text()</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box danger">
+          <span class="box-label">// Erro comum</span>
+          Se você não adicionar <code>app.use(express.json())</code>, o <code>req.body</code> sempre será
+          <code>undefined</code> — e você vai perder horas debugando. Sempre configure o middleware de parsing antes das
+          suas rotas.
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 7: CÓDIGO COMPLETO -->
+      <section class="section" id="pratica">
+        <h2 class="section-title">
+          <span class="num">07</span>
+          Código completo — CRUD real
+        </h2>
+
+        <p>Veja tudo que aprendemos em um exemplo real: uma API de usuários com as 4 operações básicas, usando req e res
+          corretamente em cada cenário.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-title">API de Usuários — CRUD completo</span><span
+              class="code-lang">JavaScript</span></div>
+          <pre><span class="kw">const</span> <span class="obj">express</span> = <span class="fn">require</span>(<span class="str">'express'</span>)
+<span class="kw">const</span> <span class="obj">app</span> = <span class="fn">express</span>()
+
+<span class="com">// Middleware para parsear JSON no body</span>
+<span class="obj">app</span>.<span class="fn">use</span>(<span class="obj">express</span>.<span class="fn">json</span>())
+
+<span class="com">// Banco de dados em memória (simulação)</span>
+<span class="kw">let</span> <span class="obj">usuarios</span> = [
+  { <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">nome</span>: <span class="str">'Ana'</span>, <span class="prop">email</span>: <span class="str">'ana@email.com'</span> },
+  { <span class="prop">id</span>: <span class="num">2</span>, <span class="prop">nome</span>: <span class="str">'Bruno'</span>, <span class="prop">email</span>: <span class="str">'bruno@email.com'</span> },
+]
+
+<span class="com">// ─────────────────────────────────────────
+// GET /usuarios — Lista todos os usuários
+// Usa: req.query para filtros opcionais
+// ─────────────────────────────────────────</span>
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/usuarios'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> { <span class="obj">nome</span> } = <span class="obj">req</span>.<span class="prop">query</span>
+
+  <span class="kw">let</span> <span class="obj">resultado</span> = <span class="obj">usuarios</span>
+  <span class="kw">if</span> (<span class="obj">nome</span>) {
+    <span class="obj">resultado</span> = <span class="obj">usuarios</span>.<span class="fn">filter</span>(<span class="obj">u</span> =>
+      <span class="obj">u</span>.<span class="prop">nome</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="obj">nome</span>.<span class="fn">toLowerCase</span>())
+    )
+  }
+
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({
+    <span class="prop">total</span>: <span class="obj">resultado</span>.<span class="prop">length</span>,
+    <span class="prop">dados</span>: <span class="obj">resultado</span>
+  })
+})
+
+<span class="com">// ─────────────────────────────────────────
+// GET /usuarios/:id — Busca um usuário
+// Usa: req.params.id
+// ─────────────────────────────────────────</span>
+<span class="obj">app</span>.<span class="fn">get</span>(<span class="str">'/usuarios/:id'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> <span class="obj">id</span> = <span class="fn">Number</span>(<span class="obj">req</span>.<span class="prop">params</span>.<span class="prop">id</span>)
+  <span class="kw">const</span> <span class="obj">usuario</span> = <span class="obj">usuarios</span>.<span class="fn">find</span>(<span class="obj">u</span> => <span class="obj">u</span>.<span class="prop">id</span> === <span class="obj">id</span>)
+
+  <span class="kw">if</span> (!<span class="obj">usuario</span>) {
+    <span class="kw">return</span> <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Usuário não encontrado'</span> })
+  }
+
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>(<span class="obj">usuario</span>)
+})
+
+<span class="com">// ─────────────────────────────────────────
+// POST /usuarios — Cria um usuário
+// Usa: req.body (nome, email)
+// ─────────────────────────────────────────</span>
+<span class="obj">app</span>.<span class="fn">post</span>(<span class="str">'/usuarios'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> { <span class="obj">nome</span>, <span class="obj">email</span> } = <span class="obj">req</span>.<span class="prop">body</span>
+
+  <span class="kw">if</span> (!<span class="obj">nome</span> || !<span class="obj">email</span>) {
+    <span class="kw">return</span> <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Nome e email são obrigatórios'</span> })
+  }
+
+  <span class="kw">const</span> <span class="obj">novoUsuario</span> = {
+    <span class="prop">id</span>: <span class="obj">usuarios</span>.<span class="prop">length</span> + <span class="num">1</span>,
+    <span class="obj">nome</span>,
+    <span class="obj">email</span>
+  }
+
+  <span class="obj">usuarios</span>.<span class="fn">push</span>(<span class="obj">novoUsuario</span>)
+
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>(<span class="obj">novoUsuario</span>)
+})
+
+<span class="com">// ─────────────────────────────────────────
+// PUT /usuarios/:id — Atualiza um usuário
+// Usa: req.params.id + req.body
+// ─────────────────────────────────────────</span>
+<span class="obj">app</span>.<span class="fn">put</span>(<span class="str">'/usuarios/:id'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> <span class="obj">id</span> = <span class="fn">Number</span>(<span class="obj">req</span>.<span class="prop">params</span>.<span class="prop">id</span>)
+  <span class="kw">const</span> <span class="obj">index</span> = <span class="obj">usuarios</span>.<span class="fn">findIndex</span>(<span class="obj">u</span> => <span class="obj">u</span>.<span class="prop">id</span> === <span class="obj">id</span>)
+
+  <span class="kw">if</span> (<span class="obj">index</span> === -<span class="num">1</span>) {
+    <span class="kw">return</span> <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Usuário não encontrado'</span> })
+  }
+
+  <span class="obj">usuarios</span>[<span class="obj">index</span>] = { ...<span class="obj">usuarios</span>[<span class="obj">index</span>], ...<span class="obj">req</span>.<span class="prop">body</span>, <span class="obj">id</span> }
+
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>(<span class="obj">usuarios</span>[<span class="obj">index</span>])
+})
+
+<span class="com">// ─────────────────────────────────────────
+// DELETE /usuarios/:id — Remove um usuário
+// Usa: req.params.id — Resposta: 204 sem body
+// ─────────────────────────────────────────</span>
+<span class="obj">app</span>.<span class="fn">delete</span>(<span class="str">'/usuarios/:id'</span>, (<span class="obj">req</span>, <span class="obj">res</span>) => {
+  <span class="kw">const</span> <span class="obj">id</span> = <span class="fn">Number</span>(<span class="obj">req</span>.<span class="prop">params</span>.<span class="prop">id</span>)
+  <span class="kw">const</span> <span class="obj">existe</span> = <span class="obj">usuarios</span>.<span class="fn">some</span>(<span class="obj">u</span> => <span class="obj">u</span>.<span class="prop">id</span> === <span class="obj">id</span>)
+
+  <span class="kw">if</span> (!<span class="obj">existe</span>) {
+    <span class="kw">return</span> <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ <span class="prop">erro</span>: <span class="str">'Usuário não encontrado'</span> })
+  }
+
+  <span class="obj">usuarios</span> = <span class="obj">usuarios</span>.<span class="fn">filter</span>(<span class="obj">u</span> => <span class="obj">u</span>.<span class="prop">id</span> !== <span class="obj">id</span>)
+
+  <span class="obj">res</span>.<span class="fn">status</span>(<span class="num">204</span>).<span class="fn">end</span>() <span class="com">// Sem corpo na resposta</span>
+})
+
+<span class="obj">app</span>.<span class="fn">listen</span>(<span class="num">3000</span>, () => {
+  <span class="obj">console</span>.<span class="fn">log</span>(<span class="str">'Servidor rodando em http://localhost:3000'</span>)
+})</pre>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- SEÇÃO 8: RESUMO -->
+      <section class="section" id="resumo">
+        <h2 class="section-title">
+          <span class="num">08</span>
+          Resumo — o que fixar
+        </h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Objeto</th>
+                <th>Propriedade / Método</th>
+                <th>Para quê serve</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="7"
+                  style="color:var(--green); font-family:'Syne',sans-serif; font-weight:700; vertical-align:top; padding-top:14px;">
+                  req</td>
+                <td class="td-code">req.method</td>
+                <td>Verbo HTTP da requisição</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.params</td>
+                <td>Parâmetros da URL (/rota/:id)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.query</td>
+                <td>Query string (?chave=valor)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.body</td>
+                <td>Dados do corpo (precisa de middleware)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.headers</td>
+                <td>Headers enviados pelo cliente</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.get(name)</td>
+                <td>Lê um header específico (case-insensitive)</td>
+              </tr>
+              <tr>
+                <td class="td-code">req.ip / req.path</td>
+                <td>IP do cliente e caminho da URL</td>
+              </tr>
+              <tr>
+                <td rowspan="7"
+                  style="color:var(--blue); font-family:'Syne',sans-serif; font-weight:700; vertical-align:top; padding-top:14px;">
+                  res</td>
+                <td class="td-code">res.status(code)</td>
+                <td>Define o status HTTP (retorna res para chaining)</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.json(obj)</td>
+                <td>Envia resposta JSON (padrão para APIs)</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.send(data)</td>
+                <td>Envia resposta genérica (string, HTML, Buffer)</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.redirect(url)</td>
+                <td>Redireciona o cliente</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.sendFile(path)</td>
+                <td>Envia um arquivo como resposta</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.set(key, val)</td>
+                <td>Define headers na resposta</td>
+              </tr>
+              <tr>
+                <td class="td-code">res.end()</td>
+                <td>Finaliza a resposta sem corpo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box tip" style="margin-top:28px;">
+          <span class="box-label">// Próximo tópico</span>
+          Agora que você entende como req e res funcionam, o <strong>Tópico 06 — Middlewares</strong> vai fazer muito
+          mais sentido: middlewares nada mais são do que funções que recebem <code>req</code>, <code>res</code> e
+          <code>next</code> e podem modificar ambos antes da sua rota ser chamada.
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Smooth scroll + active nav
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'))
+        item.classList.add('active')
+      })
+    })
+
+    // Update active nav on scroll
+    const sections = document.querySelectorAll('section[id]')
+    const navItems = document.querySelectorAll('.nav-item[href]')
+
+    window.addEventListener('scroll', () => {
+      let current = ''
+      sections.forEach(sec => {
+        if (window.scrollY >= sec.offsetTop - 120) current = sec.id
+      })
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + current)
+      })
+    })
+  </script>
+</body>
+
+</html>
